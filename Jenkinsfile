@@ -56,7 +56,7 @@ def feishuNotification() {
     def buildStatus = currentBuild.result ?: 'SUCCESS'
     def color = (buildStatus == 'SUCCESS') ? 'green' : 'red'
     def message = (buildStatus == 'SUCCESS') ? '构建成功' : '构建失败'
-    def buildUser = BUILD_USER ?: 'System'
+    def buildUser = getBuildUser()
     def buildNumber = BUILD_NUMBER ?: 'unknown'
     def buildUrl = env.BUILD_URL ?: 'unknown'
     def durationStr = currentBuild.durationString ?: 'unknown'
@@ -82,4 +82,13 @@ def feishuNotification() {
             }
         }'
     """
+}
+
+def getBuildUser() {
+    try {
+        def cause = currentBuild.rawBuild.getCause(hudson.model.Cause$UserIdCause)
+        return cause ? cause.getUserId() : 'System'
+    } catch (Exception e) {
+        return 'System'
+    }
 }
