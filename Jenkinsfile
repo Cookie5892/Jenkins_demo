@@ -34,11 +34,22 @@ pipeline {
                 sh 'mvn package -DskipTests'
             }
         }
+
+        stage('Run') {
+            steps {
+                echo 'Running the application...'
+                sh 'nohup java -jar target/jenkins-demo-1.0.0.jar > app.log 2>&1 &'
+                echo 'Waiting for application to start...'
+                sleep 30
+                sh 'curl -s http://localhost:9090/hello || (echo "App startup failed, checking logs:" && cat app.log && exit 1)'
+            }
+        }
     }
 
     post {
         always {
             echo 'Cleaning up...'
+            sh 'pkill -f jenkins-demo-1.0.0.jar || true'
             cleanWs()
         }
         success {
