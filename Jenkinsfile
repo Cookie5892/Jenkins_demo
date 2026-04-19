@@ -53,9 +53,13 @@ pipeline {
 }
 
 def feishuNotification() {
-    def status = currentBuild.result ?: 'SUCCESS'
-    def color = status == 'SUCCESS' ? 'green' : 'red'
-    def message = status == 'SUCCESS' ? '构建成功' : '构建失败'
+    def buildStatus = currentBuild.result ?: 'SUCCESS'
+    def color = (buildStatus == 'SUCCESS') ? 'green' : 'red'
+    def message = (buildStatus == 'SUCCESS') ? '构建成功' : '构建失败'
+    def buildUser = BUILD_USER ?: 'System'
+    def buildNumber = BUILD_NUMBER ?: 'unknown'
+    def buildUrl = env.BUILD_URL ?: 'unknown'
+    def durationStr = currentBuild.durationString ?: 'unknown'
 
     sh """
         curl -X POST 'https://open.feishu.cn/open-apis/bot/v2/hook/a269846c-3b2b-4da8-9318-6769bdfd44da' \
@@ -65,15 +69,15 @@ def feishuNotification() {
             "card": {
                 "header": {
                     "title": {"tag": "plain_text", "content": "Jenkins 构建通知"},
-                    "template": "'${color}'"
+                    "template": "${color}"
                 },
                 "elements": [
                     {"tag": "div", "text": {"tag": "lark_md", "content": "**项目名称:** jenkins-demo"}},
-                    {"tag": "div", "text": {"tag": "lark_md", "content": "**构建状态:** '${message}'"}},
-                    {"tag": "div", "text": {"tag": "lark_md", "content": "**构建编号:** #'${BUILD_NUMBER}'"}},
-                    {"tag": "div", "text": {"tag": "lark_md", "content": "**触发用户:** ${BUILD_USER:-'System'}"}},
-                    {"tag": "div", "text": {"tag": "lark_md", "content": "**构建耗时:** ${currentBuild.durationString}"}},
-                    {"tag": "div", "text": {"tag": "lark_md", "content": "**构建日志:** [点击查看](${env.BUILD_URL})"}}
+                    {"tag": "div", "text": {"tag": "lark_md", "content": "**构建状态:** ${message}"}},
+                    {"tag": "div", "text": {"tag": "lark_md", "content": "**构建编号:** #${buildNumber}"}},
+                    {"tag": "div", "text": {"tag": "lark_md", "content": "**触发用户:** ${buildUser}"}},
+                    {"tag": "div", "text": {"tag": "lark_md", "content": "**构建耗时:** ${durationStr}"}},
+                    {"tag": "div", "text": {"tag": "lark_md", "content": "**构建日志:** [点击查看](${buildUrl})"}}
                 ]
             }
         }'
